@@ -3,7 +3,7 @@
 //
 
 #include "rtsp_receiver.h"
-RtspReceiver::RtspReceiver(const std::string stream_url): stream_url_(stream_url){
+RtspReceiver::RtspReceiver(const std::string& stream_url): stream_url_(stream_url){
 //  avdevice_register_all();
 //  avformat_network_init();
 }
@@ -19,9 +19,8 @@ bool RtspReceiver::Setup() {
   if (format_context_ == nullptr)
     return false;
 
-  if(!SetFormatContextParameters()){
+  if(!SetFormatContextParameters())
     return false;
-  }
 
   if(!FindStreamInfo())
     return false;
@@ -31,7 +30,6 @@ bool RtspReceiver::Setup() {
 
   if(!SetupCodec())
     return false;
-
 
   return true;
 
@@ -77,7 +75,7 @@ bool RtspReceiver::SetFormatContextParameters() {
 bool RtspReceiver::FindStreamInfo() {
 
   if (int ret = avformat_open_input(&format_context_, stream_url_.c_str(), nullptr, nullptr); ret != 0) {
-    std::cerr<<"Error occurred at avformat_open_input: "<<MaketErrorString(ret)<<std::endl;
+    std::cerr << "Error occurred at avformat_open_input: " << MakeErrorString(ret) << std::endl;
     return false;
   }
 
@@ -124,10 +122,9 @@ bool RtspReceiver::FindStream() {
 bool RtspReceiver::SetupCodec() {
   auto codec = avcodec_find_decoder(format_context_->streams[found_stream_id_]->codecpar->codec_id);
   if (codec == nullptr) {
-    std::cerr << "codec not found Error 15" << std::endl;
+    std::cerr << "codec not found" << std::endl;
     return false;
   }
-
 
   codec_context_ = avcodec_alloc_context3(codec);
 
@@ -145,17 +142,16 @@ bool RtspReceiver::SetupCodec() {
   codec_context_->refs = 3;
 
   if (int ret = avcodec_open2(codec_context_, codec, nullptr); ret < 0) {
-    std::cerr << "Open Codec Error: "<<MaketErrorString(ret) << std::endl;
+    std::cerr << "Open Codec Error: " << MakeErrorString(ret) << std::endl;
     return false;
   }
 
   avcodec_parameters_to_context(codec_context_, format_context_->streams[found_stream_id_]->codecpar);
 
-
   return true;
 }
 
-std::string RtspReceiver::MaketErrorString(int err) {
+std::string RtspReceiver::MakeErrorString(int err) {
   //char err_str[AV_ERROR_MAX_STRING_SIZE];
   std::string  err_str;
   av_make_error_string(err_str.data(),AV_ERROR_MAX_STRING_SIZE,err);
@@ -167,8 +163,8 @@ void RtspReceiver::DecodeLoop() {
   auto frame_rgb = av_frame_alloc();
 
   AVPixelFormat pixel_format = AV_PIX_FMT_RGB24;
-  int numBytes = av_image_get_buffer_size(pixel_format, codec_context_->width, codec_context_->height, 1);
-  auto *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+  int num_bytes = av_image_get_buffer_size(pixel_format, codec_context_->width, codec_context_->height, 1);
+  auto *buffer = (uint8_t *) av_malloc(num_bytes * sizeof(uint8_t));
   av_image_fill_arrays(frame_rgb->data,
                        frame_rgb->linesize,
                        buffer,
@@ -188,7 +184,7 @@ void RtspReceiver::DecodeLoop() {
       ret = av_read_frame(format_context_, packet);
     }
     if(ret<0){
-      std::cerr<<"Can't read frame"<<MaketErrorString(ret)<<std::endl;
+      std::cerr << "Can't read frame" << MakeErrorString(ret) << std::endl;
       continue;
     }
 
@@ -228,7 +224,7 @@ bool RtspReceiver::DecodeFrame(const AVPacket *packet, AVFrame *frame) {
   ret = avcodec_receive_frame(codec_context_, frame);
   if (ret < 0) {
     if (ret == AVERROR(EAGAIN)) return false;
-    std::cerr<<"Receive frame failed: "<<MaketErrorString(ret)<<std::endl;
+    std::cerr << "Receive frame failed: " << MakeErrorString(ret) << std::endl;
     stop_ = true;
     return false;
   }

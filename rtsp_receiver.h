@@ -47,7 +47,7 @@ struct MeasureExecTime{
 
 class RtspReceiver {
  public:
-  explicit RtspReceiver(std::string stream_url);
+  explicit RtspReceiver(const std::string& stream_url);
   ~RtspReceiver();
   bool Setup();
   void DecodeLoop();
@@ -73,7 +73,7 @@ class RtspReceiver {
   bool ConvertFrameFromYuvToBgr(AVFrame *frame,AVFrame *frame_rgb);
   static void ShowImageOpenCv(AVFrame *frame, AVFrame *frame_rgb);
   bool DecodeFrame(const AVPacket* packet, AVFrame* frame);
-  static std::string MaketErrorString(int err);
+  static std::string MakeErrorString(int err);
 
 };
 

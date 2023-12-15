@@ -20,7 +20,7 @@ void signal_handler(int signal)
 int main(){
   std::signal(SIGINT, signal_handler);
 
-  RtspReceiver rr("rtsp://admin:Massive6378@192.168.1.199:554/live");
+  RtspReceiver rr("rtsp://admin:Massive6378@31.141.245.152:554/live");
 
   std::thread sig_thread([&rr](){
     while (gSignalStatus == 0){
